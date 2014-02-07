@@ -26,6 +26,7 @@ gem 'ember-source', '~> 1.2'
 gem 'ember-data-source'
 gem 'ember-bootstrap-rails'
 gem 'ember-rails'
+gem 'emblem-rails', github: "alexspeller/emblem-rails"
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
 

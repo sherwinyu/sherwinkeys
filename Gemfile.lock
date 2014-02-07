@@ -1,3 +1,11 @@
+GIT
+  remote: git://github.com/alexspeller/emblem-rails.git
+  revision: 70567c3e3a45c47a3292944f0dd91f572126f9d8
+  specs:
+    emblem-rails (0.2.1)
+      barber-emblem (~> 0.1.1)
+      ember-rails (>= 0.14.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -35,6 +43,9 @@ GEM
       ember-source
       execjs
       handlebars-source
+    barber-emblem (0.1.1)
+      barber (>= 0.4.1)
+      emblem-source
     builder (3.0.4)
     coffee-rails (3.2.2)
       coffee-script (>= 2.2.0)
@@ -58,6 +69,7 @@ GEM
       railties (>= 3.1)
     ember-source (1.2.0.1)
       handlebars-source (~> 1.1.2)
+    emblem-source (0.3.11)
     erubis (2.7.0)
     execjs (2.0.2)
     handlebars-source (1.1.2)
@@ -129,6 +141,7 @@ DEPENDENCIES
   ember-data-source
   ember-rails
   ember-source (~> 1.2)
+  emblem-rails!
   jquery-rails (= 2.2.1)
   rails (= 3.2.13)
   sass-rails (~> 3.2.3)

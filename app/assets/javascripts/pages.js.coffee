@@ -1,7 +1,13 @@
-# Place all the behaviors and hooks related to the matching controller here.
-# All this logic will automatically be available in application.js.
-# You can use CoffeeScript in this file: http://jashkenas.github.com/coffee-script/
+window.Sk = Sherwinkeys
 Sherwinkeys.TestPage = {}
+
+
+
+
+Sk.TestPage.ping = (str) ->
+  console.log str
+
+
 Sherwinkeys.TestPage.init = ->
   document.testform.t.value += ""
   lines = 0
@@ -87,4 +93,5 @@ lines = 0
 maxlines = 24
 
 $(document).ready ->
-  Sherwinkeys.TestPage.init();
+  if $('#testform').length
+    Sherwinkeys.TestPage.init();
