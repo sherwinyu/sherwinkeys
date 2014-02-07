@@ -43,6 +43,8 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.7.0)
+    ember-bootstrap-rails (0.0.3)
+      rails (>= 3.1.0)
     ember-data-source (0.14)
       ember-source
     ember-rails (0.14.1)
@@ -62,7 +64,7 @@ GEM
     hike (1.2.3)
     i18n (0.6.1)
     journey (1.0.4)
-    jquery-rails (3.1.0)
+    jquery-rails (2.2.1)
       railties (>= 3.0, < 5.0)
       thor (>= 0.14, < 2.0)
     json (1.8.1)
@@ -123,8 +125,11 @@ PLATFORMS
 
 DEPENDENCIES
   coffee-rails (~> 3.2.1)
+  ember-bootstrap-rails
+  ember-data-source
   ember-rails
-  jquery-rails
+  ember-source (~> 1.2)
+  jquery-rails (= 2.2.1)
   rails (= 3.2.13)
   sass-rails (~> 3.2.3)
   sqlite3

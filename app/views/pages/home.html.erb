@@ -1,1 +1,47 @@
 Sherwin keys test
+
+<form name="testform">
+<h2>Javascript Key Event Test Script</h2><p>
+Type keys in the text area below to see the Javascript events triggered
+and the values returned.
+Notes on test results from the page are at
+<a href="http://unixpapa.com/js/key.html">http://unixpapa.com/js/key.html</a>.
+<p>
+On most browsers, suppressing the default action on keypress events prevents
+the browser from processing the keystroke. On some browsers, suppressing the
+default action on keydown prevents keypress or keyup events from triggering.
+Textinput events normally won't be seen unless you turn off default
+suppression on keydown and keypress.
+<p>
+Your browser: <strong>
+<script>
+document.write(navigator.userAgent);
+</script>
+</strong>
+<p>
+<table>
+<tr><td>Suppress default handling of:</td>
+<td><input type="checkbox" name="keydown" value="1"> keydown
+&nbsp;&nbsp;&nbsp;
+<input type="checkbox" name="keypress" value="1" checked> keypress
+&nbsp;&nbsp;&nbsp;
+<input type="checkbox" name="keyup" value="1"> keyup
+&nbsp;&nbsp;&nbsp;
+<input type="checkbox" name="textinput" value="1"> textinput
+</td></tr>
+<tr><td>Show attribute values for:</td>
+<td><input type="checkbox" name="classic" value="1" checked> classic
+&nbsp;&nbsp;&nbsp;
+<input type="checkbox" name="modifiers" value="1"> modifiers
+&nbsp;&nbsp;&nbsp;
+<input type="checkbox" name="dom3" value="1"> DOM 3
+&nbsp;&nbsp;&nbsp;
+<input type="checkbox" name="olddom3" value="1"> old DOM 3
+</td></tr>
+</table>
+<textarea name="t" rows="25" cols="90"></textarea>
+<br>
+<input type="reset" onclick="document.testform.t.value='';lines=0;return false">
+</form>
+</body>
+
