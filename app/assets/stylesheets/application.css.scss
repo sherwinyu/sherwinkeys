@@ -1,0 +1,16 @@
+.key-event {
+  animation: sunrise 2s;
+  -webkit-animation: sunrise 2s;
+  border: 1px solid transparent;
+  padding: 5px;
+}
+
+@-webkit-keyframes sunrise {
+  0% {
+    border: 1px solid black;
+    opaity: 1;
+  }
+  100% {
+    border: 1px solid transparent;
+  }
+}

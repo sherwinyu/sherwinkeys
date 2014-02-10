@@ -1,7 +1,8 @@
 h3 Key Events
+a{action 'clear'}: | clear
 = each key_event in content
   .key-event
-    ul.key-event
+    ul
       li: = key_event.type
       li: = key_event.keyName
 
