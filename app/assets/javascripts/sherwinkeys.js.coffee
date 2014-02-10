@@ -10,6 +10,12 @@
 #= require_self
 #= require ./helpers
 
+Ember.Handlebars.helper 'timeAgo', (value, options) ->
+  elapsedTime = moment.duration moment(value).diff(new Date())
+  # elapsedTime.format(
+  escaped = Handlebars.Utils.escapeExpression(value)
+  new Handlebars.SafeString('<span class="highlight">' + escaped + '</span>');
+
 Sk.KeyEvent = Ember.Object.extend
 
 Sk.EmberTesting =

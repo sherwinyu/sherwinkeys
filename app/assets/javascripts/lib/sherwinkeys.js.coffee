@@ -239,6 +239,7 @@
       type: e.type
       keyName: keyName
       originalEvent: e
+      timestamp: new Date()
 
   for k of _MODIFIERS
     continue

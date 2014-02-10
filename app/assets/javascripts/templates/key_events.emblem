@@ -1,8 +1,15 @@
 h3 Key Events
+
+label Key press
+= input type="checkbox" checked=showKeyPress
+= showKeyPress
+
+
 a{action 'clear'}: | clear
-= each key_event in content
+= each key_event in filteredContent
   .key-event
     ul
       li: = key_event.type
       li: = key_event.keyName
+      li: = timestamp
 

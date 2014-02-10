@@ -3,6 +3,7 @@
 #= require ember
 #= require ember-data
 #= require ./lib/sherwinkeys
+#= require ./lib/moment.min
 #
 #= require_self
 #= require sherwinkeys

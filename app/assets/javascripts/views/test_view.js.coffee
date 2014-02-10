@@ -1,10 +1,24 @@
 Sk.KeyEventsController = Ember.ArrayController.extend
+  showKeyPress: true
+  showKeyDown: true
+  showKeyUp: true
   init: ->
     @_super()
     @set 'content', Keygex.events
   reversedContent: (->
     @get('content').toArray().reverse()
   ).property 'content.@each'
+  filteredContent: (->
+    allow =
+      keypress: @get('showKeyPress')
+      keydown: @get('showKeyDown')
+      keyup: @get('showKeyUp')
+
+    @get('content').filter (event) ->
+      return allow[event.type]
+
+
+  ).property 'showKeyPress', 'showKeyDown', 'showKeyUp', 'content.@each'
   actions:
     clear: ->
       @get('content').clear()
