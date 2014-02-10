@@ -24,7 +24,7 @@
     true
   updateModifierKey = (event) ->
     for k of _mods
-      continue
+      event[modifierMap[k]]
     return
 
   # handle keydown event
@@ -43,9 +43,9 @@
     if key of _mods
       _mods[key] = true
 
-      # 'assignKey' from inside this closure is exported to window.key
+      # set assignKey (e.g. key.shift) to true
       for k of _MODIFIERS
-        continue
+        assignKey[k] = true if _MODIFIERS[k] == key
       return
     updateModifierKey event
 
@@ -108,6 +108,8 @@
     keys = undefined
     mods = undefined
     keys = getKeys(key)
+
+    # arg shift
     if method is `undefined`
       method = scope
       scope = "all"
@@ -129,16 +131,17 @@
       key = code(key)
 
       # ...store handler
+
+      # default initialize the handler. Still stored based on the key
       _handlers[key] = []  unless key of _handlers
       _handlers[key].push
-        shortcut: keys[i]
+        shortcut: keys[i] # the String representation
         scope: scope
         method: method
         key: keys[i]
         mods: mods
 
       i++
-    return
 
   # unbind all handlers for given key in current scope
   unbindKey = (key, scope) ->
@@ -204,6 +207,8 @@
     return
 
   # abstract key logic for assign and unassign
+  # @param key [String] Key String
+  # This functino strips white space and
   getKeys = (key) ->
     keys = undefined
     key = key.replace(/\s/g, "")
@@ -212,6 +217,11 @@
     keys
 
   # abstract mods logic for assign and unassign
+  # @param key [Array<String>] of the form ["shift", "key", "5"]
+  #   note that the 'primary key' must be last
+  #
+  # @return [Array<Keycode>]
+  #   a list of integers representing the keycodes for the modifiers
   getMods = (key) ->
     mods = key.slice(0, key.length - 1)
     mi = 0

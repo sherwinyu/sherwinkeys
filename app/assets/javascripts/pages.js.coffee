@@ -1,8 +1,6 @@
 window.Sk = Sherwinkeys
+
 Sherwinkeys.TestPage = {}
-
-
-
 
 Sk.TestPage.ping = (str) ->
   console.log str
@@ -71,10 +69,12 @@ suppressdefault = (e, flag) ->
     e.preventDefault()  if e.preventDefault
     e.stopPropagation()  if e.stopPropagation
   not flag
+
 keydown = (e) ->
   e = event  unless e
   keymesg "keydown ", e
   suppressdefault e, document.testform.keydown.checked
+
 keyup = (e) ->
   e = event  unless e
   keymesg "keyup   ", e
@@ -94,4 +94,6 @@ maxlines = 24
 
 $(document).ready ->
   if $('#testform').length
-    Sherwinkeys.TestPage.init();
+    Sherwinkeys.TestPage.init()
+  if $('#ember-testing').length
+    Sherwinkeys.EmberTesting.init()

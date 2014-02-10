@@ -1,0 +1,7 @@
+h3 Key Events
+= each key_event in content
+  .key-event
+    ul.key-event
+      li: = key_event.type
+      li: = key_event.keyName
+

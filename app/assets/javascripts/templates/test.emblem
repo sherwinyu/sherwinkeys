@@ -1,3 +1,8 @@
 br
 h3 test view
+Ember.TextField
 br
+
+hr
+
+Sherwinkeys.KeyEventsView

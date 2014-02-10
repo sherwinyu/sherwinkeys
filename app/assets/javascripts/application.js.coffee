@@ -2,7 +2,7 @@
 #= require handlebars
 #= require ember
 #= require ember-data
-#= require_tree ./lib
+#= require ./lib/sherwinkeys
 #
 #= require_self
 #= require sherwinkeys
