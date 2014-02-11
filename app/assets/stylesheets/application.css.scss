@@ -16,3 +16,21 @@
     border: 1px solid transparent;
   }
 }
+
+.key-event .light {
+  color: #757575;
+  font-size: 85%;
+}
+
+
+.key-event.down {
+  color: red;
+}
+
+.key-event.up {
+  color: blue;
+}
+
+.key-event.gap {
+  padding: 20px;
+}

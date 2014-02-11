@@ -20,6 +20,8 @@ Sk.KeyEventsController = Ember.ArrayController.extend
   showKeyPress: true
   showKeyDown: true
   showKeyUp: true
+  showGaps: true
+
   init: ->
     @_super()
     @set 'content', Keygex.events
@@ -30,15 +32,16 @@ Sk.KeyEventsController = Ember.ArrayController.extend
 
   filteredContent: (->
     allow =
-      keypress: @get('showKeyPress')
-      keydown: @get('showKeyDown')
-      keyup: @get('showKeyUp')
+      press: @get('showKeyPress')
+      down: @get('showKeyDown')
+      up: @get('showKeyUp')
+      gap: @get 'showGaps'
 
-    @get('content').filter (event) ->
+    @get('reversedContent').filter (event) ->
         return allow[event.type]
 
 
-  ).property 'showKeyPress', 'showKeyDown', 'showKeyUp', 'content.@each'
+  ).property 'showKeyPress', 'showKeyDown', 'showKeyUp', 'showGaps', 'reversedContent'
   actions:
     clear: ->
       @get('content').clear()
@@ -64,6 +67,8 @@ Sk.KeyEventsView = Ember.View.extend
 Sk.KeyEventView = Ember.View.extend
   templateName: "key_event"
   classNames: ['key-event']
+  classNameBindings: ['controller.type']
+
   didInsertElement: ->
     ts = @get('context.timestamp')
     if moment(ts).isAfter( moment().subtract(2, 'seconds') )

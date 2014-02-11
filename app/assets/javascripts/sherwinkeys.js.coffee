@@ -22,9 +22,10 @@ Ember.Handlebars.helper 'timeAgo', (value, options) ->
   #
 Ember.Handlebars.helper 'timeDiff', (value, now, options) ->
   elapsedTime = moment( moment().diff value).utc()
-  formatString = "s[s]"
+  formatString = ""
   if elapsedTime.minutes() > 0
     formatString += "m[m] "
+  formatString+= "s[s]"
   time = elapsedTime.format formatString
   "#{time} ago"
   # escaped = Handlebars.Utils.escapeExpression(value)

@@ -1,108 +1,6 @@
 #     sherwinkeys.js
 #     (c) Sherwin Yu 2014
 ((global) ->
-
-  updateModifierKey = (event) ->
-    for k of _mods
-      event[modifierMap[k]]
-    return
-
-  # handle keydown event
-  dispatch = (event) ->
-    key = undefined
-    handler = undefined
-    k = undefined
-    i = undefined
-    modifiersMatch = undefined
-    scope = undefined
-    key = event.keyCode
-    _downKeys.push key  if index(_downKeys, key) is -1
-
-    # if a modifier key, set the key.<modifierkeyname> property to true and return
-    key = 91  if key is 93 or key is 224 # right command on webkit, command on Gecko
-    if key of _mods
-      _mods[key] = true
-
-      # set assignKey (e.g. key.shift) to true
-      for k of _MODIFIERS
-        assignKey[k] = true if _MODIFIERS[k] == key
-      return
-    updateModifierKey event
-
-    # see if we need to ignore the keypress (filter() can can be overridden)
-    # by default ignore key presses if a select, textarea, or input is focused
-    return  unless assignKey.filter.call(this, event)
-
-    # abort if no potentially matching shortcuts found
-    return  unless key of _handlers
-    scope = getScope()
-
-    # for each potential shortcut
-    i = 0
-    while i < _handlers[key].length
-      handler = _handlers[key][i]
-
-      # see if it's in the current scope
-      if handler.scope is scope or handler.scope is "all"
-
-        # check if modifiers match if any
-        modifiersMatch = handler.mods.length > 0
-        for k of _mods
-          continue
-
-        # call the handler and stop the event if neccessary
-        if (handler.mods.length is 0 and not _mods[16] and not _mods[18] and not _mods[17] and not _mods[91]) or modifiersMatch
-          if handler.method(event, handler) is false
-            if event.preventDefault
-              event.preventDefault()
-            else
-              event.returnValue = false
-            event.stopPropagation()  if event.stopPropagation
-            event.cancelBubble = true  if event.cancelBubble
-      i++
-    return
-
-
-  # parse and assign shortcut
-  assignKey = (key, scope, method) ->
-    keys = undefined
-    mods = undefined
-    keys = getKeys(key)
-
-    # arg shift
-    if method is `undefined`
-      method = scope
-      scope = "all"
-
-    # for each shortcut
-    i = 0
-
-    while i < keys.length
-
-      # set modifier keys if any
-      mods = []
-      key = keys[i].split("+")
-      if key.length > 1
-        mods = getMods(key)
-        key = [key[key.length - 1]]
-
-      # convert to keycode and...
-      key = key[0]
-      key = code(key)
-
-      # ...store handler
-
-      # default initialize the handler. Still stored based on the key
-      _handlers[key] = []  unless key of _handlers
-      _handlers[key].push
-        shortcut: keys[i] # the String representation
-        scope: scope
-        method: method
-        key: keys[i]
-        mods: mods
-
-      i++
-
   # cross-browser events
   addEvent = (object, event, method) ->
     if object.addEventListener
@@ -113,26 +11,6 @@
         return
 
     return
-
-  _handlers = {}
-  _mods =
-    16: false
-    18: false
-    17: false
-    91: false
-
-  _scope = "all"
-  _MODIFIERS =
-    "⇧": 16
-    shift: 16
-    "⌥": 18
-    alt: 18
-    option: 18
-    "⌃": 17
-    ctrl: 17
-    control: 17
-    "⌘": 91
-    command: 91
 
   ##
   # mapping of special keycodes to their corresponding keys
@@ -166,39 +44,26 @@
     224: 'meta'
 
 
-  _keyToCodeMap =
-    backspace: 8
-    tab: 9
-    clear: 12
-    enter: 13
-    return: 13
-    esc: 27
-    escape: 27
-    space: 32
-    left: 37
-    up: 38
-    right: 39
-    down: 40
-    del: 46
-    delete: 46
-    home: 36
-    end: 35
-    pageup: 33
-    pagedown: 34
-    ",": 188
-    ".": 190
-    "/": 191
-    "`": 192
-    "-": 189
-    "=": 187
-    ";": 186
-    "'": 222
-    "[": 219
-    "]": 221
-    "\\": 220
+    # Special keys
+    106: '*'
+    107: '+'
+    109: '-'
+    110: '/'
+    186: ';'
+    187: '='
+    188: ','
+    189: '-'
+    190: '.'
+    191: '/'
+    192: '`'
+    219: '['
+    220: '\\'
+    221: ']'
+    222: '\''
 
-  code = (x) ->
-    _MAP[x] or x.toUpperCase().charCodeAt(0)
+  # Add in the f keys programmatically
+  for i in [1...20]
+    _codeToKeyMap[111 + i] = 'f' + i
 
   _characterFromEvent = (e) ->
     # for keypress events we should return the character as is
@@ -220,29 +85,76 @@
     # for non keypress events the special maps are needed
     return _codeToKeyMap[e.which] if _codeToKeyMap[e.which]
 
-    # TODO(syu): add this ftnlity back in
-    # return _KEYCODE_MAP[e.which]  if _KEYCODE_MAP[e.which]
-
     # if it is not in the special map
     # with keydown and keyup events the character seems to always
     # come in as an uppercase character whether you are pressing shift
     # or not.  we should make sure it is always lowercase for comparisons
     String.fromCharCode(e.which).toLowerCase()
 
-  _events = []
+  _keyEvents = []
 
-  recordEvent = (e)->
+  eventToKeyEvent = (e) ->
     keyCode = e.which
     keyName = _characterFromEvent(e)
-    _events.pushObject
+    keyEvent =
       keyCode: e.which
-      type: e.type
+      type: e.type.substring(3)
       keyName: keyName
       originalEvent: e
       timestamp: new Date()
 
-  for k of _MODIFIERS
-    continue
+
+
+  checkTimeGap = ->
+    return unless _keyEvents[0]?
+    oldTs =  _keyEvents[_keyEvents.length - 1].timestamp
+    diffSeconds = moment().diff(oldTs) / 1000
+    if diffSeconds > 1
+      insertTimeGap(diffSeconds)
+
+  insertTimeGap = (duration) ->
+    timeEvent =
+      string: "- #{duration}s -"
+      type: "gap"
+      timestamp: new Date()
+      duration: duration
+    _keyEvents.pushObject timeEvent
+
+  ##
+  # @param keyEvents [Array<KeyEvent>]
+  # @return string - a textual representation (to be matched against a Keygex)
+  keyEventsToText = (keyEvents) ->
+    # OPTIMIZE
+    text = keyEvents.filter( (ke) -> ke.type != "gap").map((ke) -> keyEventToStringLiteral(ke)).join ''
+    return text
+
+  recordEvent = (e)->
+    checkTimeGap()
+    keyEvent = eventToKeyEvent(e)
+    keyEvent.timestamp = new Date()
+    keyEvent.string = keyEventToStringLiteral(keyEvent)
+
+    _keyEvents.pushObject keyEvent
+
+  ##
+  # @param combo [string]
+  #   of the form:
+  #   [key] + [x]
+  bind = (combo) ->
+
+
+
+
+  ##
+  # returns a string literal (for regex tokens) representation of a string
+  # Any "event token" that is the same must return the same event-to-string literal representation
+  # Note that we surround the entire string
+  # @param event [KeyEvent]
+  # @return string
+  keyEventToStringLiteral = (ke) ->
+    "(#{ke.keyName}-#{ke.type})"
+
+
 
   addEvent document, "keydown", recordEvent
   addEvent document, "keypress", recordEvent
@@ -260,7 +172,8 @@
   # global.key.unbind = unbindKey
   global.Keygex ||= {}
   global.Keygex.cfe = _characterFromEvent
-  global.Keygex.events = _events
+  global.Keygex.kett = keyEventsToText
+  global.Keygex.events = _keyEvents
   module.exports = key  if typeof module isnt "undefined"
   return
 ) @

@@ -1,0 +1,4 @@
+= string
+'
+span.light
+  = timeDiff timestamp view.parentView.controller.clock.pulse

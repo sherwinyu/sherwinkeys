@@ -10,6 +10,9 @@ label Key down?
 
 label Key up?
 = input type="checkbox" checked=showKeyUp
+
+label Time gaps?
+= input type="checkbox" checked=showGaps
 br
 
 a{action 'clear'}: | clear
