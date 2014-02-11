@@ -1,15 +1,17 @@
 h3 Key Events
+| Clock
+= clock.pulse
 
-label Key press
+label Key press?
 = input type="checkbox" checked=showKeyPress
-= showKeyPress
 
+label Key down?
+= input type="checkbox" checked=showKeyDown
+
+label Key up?
+= input type="checkbox" checked=showKeyUp
+br
 
 a{action 'clear'}: | clear
 = each key_event in filteredContent
-  .key-event
-    ul
-      li: = key_event.type
-      li: = key_event.keyName
-      li: = timestamp
-
+  = render 'key_event' key_event

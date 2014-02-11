@@ -1,8 +1,10 @@
 .key-event {
-  animation: sunrise 2s;
-  -webkit-animation: sunrise 2s;
   border: 1px solid transparent;
   padding: 5px;
+}
+
+.key-event.highlight {
+  -webkit-animation: sunrise 2s;
 }
 
 @-webkit-keyframes sunrise {

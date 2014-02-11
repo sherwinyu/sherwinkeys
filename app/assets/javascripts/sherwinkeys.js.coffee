@@ -11,10 +11,24 @@
 #= require ./helpers
 
 Ember.Handlebars.helper 'timeAgo', (value, options) ->
-  elapsedTime = moment.duration moment(value).diff(new Date())
-  # elapsedTime.format(
-  escaped = Handlebars.Utils.escapeExpression(value)
-  new Handlebars.SafeString('<span class="highlight">' + escaped + '</span>');
+  elapsedTime = moment( moment().diff value).utc()
+  formatString = "s[s]"
+  if elapsedTime.minutes() > 0
+    formatString += "m[m] "
+  time = elapsedTime.format formatString
+  "#{time} ago"
+  # escaped = Handlebars.Utils.escapeExpression(value)
+  # new Handlebars.SafeString('<span class="highlight">' + escaped + '</span>');
+  #
+Ember.Handlebars.helper 'timeDiff', (value, now, options) ->
+  elapsedTime = moment( moment().diff value).utc()
+  formatString = "s[s]"
+  if elapsedTime.minutes() > 0
+    formatString += "m[m] "
+  time = elapsedTime.format formatString
+  "#{time} ago"
+  # escaped = Handlebars.Utils.escapeExpression(value)
+  # new Handlebars.SafeString('<span class="highlight">' + escaped + '</span>');
 
 Sk.KeyEvent = Ember.Object.extend
 
