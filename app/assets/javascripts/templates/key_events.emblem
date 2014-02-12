@@ -1,12 +1,13 @@
 h3 Key Events
 
 h4 downkeys
-= each key in downKeys
-  '
-  '
-  = key
-  '
-  '
+div.downkeys
+  = each key in downKeys
+    '
+    '
+    = key
+    '
+    '
 
 h4 clock
 = clock.pulse

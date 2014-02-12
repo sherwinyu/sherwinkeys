@@ -112,7 +112,7 @@
 
   insertTimeGap = (duration) ->
     timeEvent =
-      string: "- #{duration}s -"
+      string: "   #{duration}s   "
       type: "gap"
       timestamp: new Date()
       duration: duration

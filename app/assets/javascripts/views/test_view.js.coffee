@@ -12,7 +12,7 @@ Sk.Clock = Ember.Object.extend
     Ember.run.later (=>
       ms = moment().diff @_start
       @set('_elapsedTime', ms)
-    ), 250
+    ), 2000
   ).observes('_elapsedTime').on('init')
 
 Sk.KeyEventsController = Ember.ArrayController.extend
@@ -64,10 +64,6 @@ Sk.KeyEventsView = Ember.View.extend
     clear: ->
       debugger
   initBindings: (->
-    Keygex.bind ["shift", "alt", "ctrl"], "b", window, ->
-      console.log "HIT"
-    Keygex.bind ["z", "x", "c", "v"], "b", window, ->
-      console.log "HIT"
   ).on "didInsertElement"
 
 
