@@ -103,8 +103,6 @@
       originalEvent: e
       timestamp: new Date()
 
-
-
   checkTimeGap = ->
     return unless _keyEvents[0]?
     oldTs =  _keyEvents[_keyEvents.length - 1].timestamp
@@ -130,17 +128,94 @@
 
   recordEvent = (e)->
     checkTimeGap()
+
     keyEvent = eventToKeyEvent(e)
     keyEvent.timestamp = new Date()
     keyEvent.string = keyEventToStringLiteral(keyEvent)
 
     _keyEvents.pushObject keyEvent
 
+    checkCallbacks()
+
+  checkCallbacks = ->
+    for keygex in _keygexes
+      if keyEventsToText(_keyEvents.filter (ke) -> ke.type in ["down", "up"]).match keygex.regex
+        keygex.callback.call(keygex.that, keygex, _keyEvents[_keyEvents.length - 1])
+
   ##
   # @param combo [string]
   #   of the form:
   #   [key] + [x]
   bind = (combo) ->
+
+  literalToken = (keyName, type="down") ->
+    keyEvent =
+      keyName: keyName
+      type: type
+    literalString = keyEventToStringLiteral(keyEvent)
+    tokenify literalString
+
+  tokenify = (string) ->
+    "(?:#{string})"
+
+  _keygexes = []
+
+  keygexTemplate =
+    originalShortcut: "a+b"
+    compiled: "(?:a-down)(?:b-down)(?:b-up)(?:b-down)"
+    regex: /(?:a-down)(?:b-down)(?:b-up)(?:b-down)$/
+    that: window
+
+    callback: -> console.log 'invoked'
+
+  ##
+  #
+  modsToken = (mods, type="down") ->
+    # mods: ['ctrl', 'shift', 'alt', 'a']
+    #
+    tokens = mods.map( (mod) -> literalToken(mod, type))
+    # tokens: (ctrl-down), (shift-down), (alt-down), (a-down)
+
+    anyModAlternation = tokens. join '|'
+    # anyModAlternation: (ctrl-down)|(shift-down)|(alt-down)|(a-down)
+
+    anyModToken = tokenify anyModAlternation
+    repeatedAnyMod = anyModToken + "{#{mods.length}}"
+    # repeatedAnyMod: ((ctrl-down)|(shift-down)|(alt-down)|(a-down)){4}
+
+    tokenify repeatedAnyMod
+
+  ##
+  # @param combos [Array<string>]
+  # @param hits [Array<string>]
+  bindCombo = (mods, hit, that, callback) ->
+    # arrayify the parametesr
+    mods = [].concat mods
+
+    modsDown = modsToken(mods)
+    hitDown = literalToken(hit)
+
+    compiled = modsDown + hitDown + "$"
+
+    # modDown = literalToken(mod)
+    # modUp = literalToken(mod, "up")
+    # hit = literalToken(hit) + literalToken(hit, "up")
+    # compiled = modDown + hit + modUp + "$"
+    regex = new RegExp(compiled)
+    _keygexes.push
+      originalShortcut: "#{mods}+#{hit}"
+      regex: regex
+      that: that
+      callback: callback
+
+
+
+
+
+
+
+
+
 
 
 
@@ -152,7 +227,7 @@
   # @param event [KeyEvent]
   # @return string
   keyEventToStringLiteral = (ke) ->
-    "(#{ke.keyName}-#{ke.type})"
+    "#{ke.keyName}-#{ke.type}"
 
 
 
@@ -174,6 +249,8 @@
   global.Keygex.cfe = _characterFromEvent
   global.Keygex.kett = keyEventsToText
   global.Keygex.events = _keyEvents
+  global.Keygex.keygex = _keygexes
+  global.Keygex.bind = bindCombo
   module.exports = key  if typeof module isnt "undefined"
   return
 ) @
