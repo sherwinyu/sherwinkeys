@@ -58,11 +58,6 @@ Sk.TestView = Ember.View.extend
     if e.which ==  65 # a
       console.log "a"
 
-
-
-
-
-
 Sk.KeyEventsView = Ember.View.extend
   templateName : "key_events"
   actions:
@@ -70,6 +65,8 @@ Sk.KeyEventsView = Ember.View.extend
       debugger
   initBindings: (->
     Keygex.bind ["shift", "alt", "ctrl"], "b", window, ->
+      console.log "HIT"
+    Keygex.bind ["z", "x", "c", "v"], "b", window, ->
       console.log "HIT"
   ).on "didInsertElement"
 
