@@ -209,7 +209,7 @@
     compiled: "(?:a-down)(?:b-down)(?:b-up)(?:b-down)"
     regex: /(?:a-down)(?:b-down)(?:b-up)(?:b-down)$/
     that: window
-
+    data: null
     callback: -> console.log 'invoked'
 
   ##
@@ -229,10 +229,12 @@
 
     tokenify repeatedAnyMod
 
+  ## language
+
   ##
   # @param combos [Array<string>]
   # @param hits [Array<string>]
-  bindCombo = (mods, hit, that, callback) ->
+  bindCombo = (mods, hit, that, data, callback) ->
     # arrayify the parametesr
     mods = [].concat mods
 
@@ -246,11 +248,15 @@
     # hit = literalToken(hit) + literalToken(hit, "up")
     # compiled = modDown + hit + modUp + "$"
     regex = new RegExp(compiled)
-    _keygexes.push
+    keygex =
       originalShortcut: "#{mods}+#{hit}"
       regex: regex
       that: that
+      data: data
       callback: callback
+
+    _keygexes.pushObject keygex
+    return keygex
 
 
 
@@ -303,7 +309,7 @@
   global.Keygex.cfe = _characterFromEvent
   global.Keygex.kett = keyEventsToText
   global.Keygex.events = _keyEvents
-  global.Keygex.keygex = _keygexes
+  global.Keygex.keygexes = _keygexes
   global.Keygex.bind = bindCombo
   global.Keygex.downKeys = downKeys
   module.exports = key  if typeof module isnt "undefined"

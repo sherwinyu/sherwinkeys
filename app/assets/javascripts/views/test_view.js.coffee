@@ -74,5 +74,29 @@ Sk.KeyEventView = Ember.View.extend
 
   didInsertElement: ->
     ts = @get('context.timestamp')
-    if moment(ts).isAfter( moment().subtract(2, 'seconds') )
+    if moment(ts).isAfter( moment().subtract(0.5, 'seconds') )
       @$().addClass 'highlight'
+
+Sk.KeygexesView = Ember.View.extend
+  templateName: "keygexes"
+  classNames: ['keygexes']
+
+Sk.KeygexesController = Ember.ArrayController.extend
+  addKeygex: (input) ->
+    mods = input.replace(/\s/g,"").split "+"
+
+    hit = mods.pop()
+    connector = Ember.Object.create()
+    Keygex.bind mods, hit, connector, connector, (keygex) ->
+      keygex.data.set "activated", true
+      utils.delayed( 1000, -> keygex.data.set "activated", false )
+
+  init: ->
+    @set('content', Keygex.keygexes)
+    @addKeygex("b + j")
+    # @addKeygex "
+    # ["shift", "alt", "ctrl"], "b", window, ->
+
+Sk.KeygexView = Ember.View.extend
+  classNames: 'keygex'
+  classNameBindings: ['controller.content.data.activated:activated']

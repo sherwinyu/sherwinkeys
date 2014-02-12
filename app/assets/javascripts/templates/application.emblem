@@ -1,3 +1,4 @@
 h2 Ember View testing
 
+= render 'keygexes'
 = render 'key_events'

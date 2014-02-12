@@ -1,0 +1,8 @@
+h2 Keygexes
+= each keygex in content
+  = render 'keygex' keygex
+
+div
+  = input value=keygexRawString
+div
+  a{action 'addKeygex' keygexRawString}: | Add keygex
