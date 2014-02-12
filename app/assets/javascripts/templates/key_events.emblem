@@ -1,7 +1,18 @@
 h3 Key Events
-| Clock
+
+h4 downkeys
+= each key in downKeys
+  '
+  '
+  = key
+  '
+  '
+
+h4 clock
 = clock.pulse
 
+
+h4 filtr
 label Key press?
 = input type="checkbox" checked=showKeyPress
 
@@ -15,6 +26,6 @@ label Time gaps?
 = input type="checkbox" checked=showGaps
 br
 
-a{action 'clear'}: | clear
+a{action 'clear' target="view.controller"}: | clear
 = each key_event in filteredContent
   = render 'key_event' key_event

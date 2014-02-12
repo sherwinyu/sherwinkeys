@@ -126,10 +126,54 @@
     text = keyEvents.filter( (ke) -> ke.type != "gap").map((ke) -> keyEventToStringLiteral(ke)).join ''
     return text
 
+  ##
+  # @param cur [KeyEvent] the key event to compare
+  # @return bool True `keyEvent` is a duplicate of the most recent event
+  detectKeyDownDuplicate = (cur) ->
+    # ans = (cur.type == "down" && downKeys.indexOf(cur.keyName) > -1)
+    # console.log "cur.type", cur.type, "downKeys.indexOf(cur.keyName)", downKeys.indexOf(cur.keyName)
+    # return ans
+    return false unless _keyEvents.length
+    return false if cur.type != "down"
+    # Note we need to limit to keyDown events because keyPress events will be stuck in as well
+
+    # find the last keyEvent with same type as cur
+    idx = _keyEvents.length - 1
+    while idx > 0 && (last = _keyEvents[idx]).keyName != cur.keyName
+      idx -= 1
+    # it's possible we hit the beginning and didn't find anything, so make sure that last and cur
+    # have same keyName
+    return false unless last && last.keyName == cur.keyName
+
+
+
+    # current key event is a duplicate-down if last was a 'down' or 'press'
+    return last.type in ["down", "press"]
+
+
+    # while (last = _keyEvents[idx]).keyName = cur.keyName &&
+    # idx -= 1
+    # keyDownEvents = _keyEvents.filter( (ke) -> ke.type == "down") # TODO OPTIMIZE
+    # last = keyDownEvents[keyDownEvents.last.length - 1]
+    # last.type == "down" && cur.type =="down" && last.keyName == cur.keyName
+
+  downKeys = []
+  updateDownKeys = (keyEvent) ->
+    if keyEvent.type == "down" && downKeys.indexOf(keyEvent.keyName) ==  -1
+      downKeys.pushObject keyEvent.keyName
+    if keyEvent.type == "up"
+      downKeys.removeObject keyEvent.keyName
+
   recordEvent = (e)->
     checkTimeGap()
-
     keyEvent = eventToKeyEvent(e)
+    updateDownKeys(keyEvent)
+
+    # filter dupe keydowns
+    if detectKeyDownDuplicate(keyEvent)
+      console.log "rejectin cuz of dupe"
+      return
+
     keyEvent.timestamp = new Date()
     keyEvent.string = keyEventToStringLiteral(keyEvent)
 
@@ -230,10 +274,20 @@
     "#{ke.keyName}-#{ke.type}"
 
 
+  resetState = ->
+    return unless _keyEvents.length
+    lastTs = _keyEvents[_keyEvents.length - 1].timestamp
+    if moment().diff(lastTs) > 1500
+      downKeys.clear()
+      _keyEvents.clear()
+
 
   addEvent document, "keydown", recordEvent
   addEvent document, "keypress", recordEvent
   addEvent document, "keyup", recordEvent
+  addEvent window, "blur", ->
+    utils.delayed resetState, 3000
+  addEvent window, "focus", resetState
 
   # set window.key and window.key.set/get/deleteScope, and the default filter
   # global.key = assignKey
@@ -251,6 +305,8 @@
   global.Keygex.events = _keyEvents
   global.Keygex.keygex = _keygexes
   global.Keygex.bind = bindCombo
+  global.Keygex.downKeys = downKeys
   module.exports = key  if typeof module isnt "undefined"
   return
 ) @
+Keygex.bind

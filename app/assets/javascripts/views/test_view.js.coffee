@@ -17,14 +17,16 @@ Sk.Clock = Ember.Object.extend
 
 Sk.KeyEventsController = Ember.ArrayController.extend
   clock : Sk.Clock.create()
-  showKeyPress: true
+  showKeyPress: false
   showKeyDown: true
   showKeyUp: true
   showGaps: true
+  downKeys: null
 
   init: ->
     @_super()
     @set 'content', Keygex.events
+    @set 'downKeys', Keygex.downKeys
 
   reversedContent: (->
     @get('content').toArray().reverse()
@@ -63,6 +65,14 @@ Sk.TestView = Ember.View.extend
 
 Sk.KeyEventsView = Ember.View.extend
   templateName : "key_events"
+  actions:
+    clear: ->
+      debugger
+  initBindings: (->
+    Keygex.bind ["shift", "alt", "ctrl"], "b", window, ->
+      console.log "HIT"
+  ).on "didInsertElement"
+
 
 Sk.KeyEventView = Ember.View.extend
   templateName: "key_event"

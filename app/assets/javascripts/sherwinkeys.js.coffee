@@ -35,7 +35,6 @@ Sk.KeyEvent = Ember.Object.extend
 
 Sk.EmberTesting =
   init: ->
-    Sk.TestView.create().append()
 
 # abstract key logic for assign and unassign
 # @param key [String] of the form
