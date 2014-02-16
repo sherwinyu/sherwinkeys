@@ -212,10 +212,11 @@
   # @return [Array<String: keyname>]
   astToKeysUsed = (ast)  ->
     collect = []
-    # If it's a sequence, drill to the very last element"
+    # If it's a sequence, we don't need to do anything, since astToRegexTokens on a sequence
+    # node already inserts the
     if ast.tag == "Seq"
-      x = 5 # do nothing
-      # collect = collect.concat astToKeysUsed(ast.rest)
+      # x = 5 # do nothing
+      collect = collect.concat astToKeysUsed(ast.rest)
     else # Otherwise, it's a multi event, wrapped event, or basic event
       for own k, v of ast
         if v instanceof Object and !(v instanceof Array)
@@ -239,17 +240,20 @@
 
     if ast.tag && ast.tag == "Seq"
       before = astToRegexTokens(ast.first)
-      unless ast.first.tag == "Seq"
-        keys = astToKeysUsed(ast.first)
-        beforeUp = modsToken(keys, "up")
-        before = before.concat beforeUp
-
-      after = astToRegexTokens(ast.rest)
       # if it's not a sequence, then we need to close out"
-      unless ast.rest.tag == "Seq"
-        keys = astToKeysUsed(ast.rest)
-        afterUp = modsToken(keys, "up")
-        after = after.concat afterUp
+      # unless ast.first.tag == "Seq"
+      # ALWAYS close out
+      keys = astToKeysUsed(ast.first)
+      beforeUp = modsToken(keys, "up")
+      before = before.concat beforeUp
+
+
+      # Don't end-ups on the after sequence
+      after = astToRegexTokens(ast.rest)
+      # unless ast.rest.tag == "Seq"
+      # keys = astToKeysUsed(ast.rest)
+      # afterUp = modsToken(keys, "up")
+      # after = after.concat afterUp
       return before.concat after
 
     if ast.tag && ast.tag == "multi"
