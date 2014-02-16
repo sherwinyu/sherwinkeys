@@ -83,17 +83,16 @@ Sk.KeygexesView = Ember.View.extend
 
 Sk.KeygexesController = Ember.ArrayController.extend
   addKeygex: (input) ->
-    mods = input.replace(/\s/g,"").split "+"
 
-    hit = mods.pop()
+    # hit = mods.pop()
     connector = Ember.Object.create()
-    Keygex.bind mods, hit, connector, connector, (keygex) ->
+    Keygex.bind input, connector, connector, (keygex) ->
       keygex.data.set "activated", true
       utils.delayed( 1000, -> keygex.data.set "activated", false )
 
   init: ->
     @set('content', Keygex.keygexes)
-    @addKeygex("b + j")
+    @addKeygex("b _ j")
     # @addKeygex "
     # ["shift", "alt", "ctrl"], "b", window, ->
 

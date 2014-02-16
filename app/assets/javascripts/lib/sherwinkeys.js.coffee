@@ -124,6 +124,7 @@
   keyEventsToText = (keyEvents) ->
     # OPTIMIZE
     text = keyEvents.filter( (ke) -> ke.type != "gap").map((ke) -> keyEventToStringLiteral(ke)).join ''
+    console.log text
     return text
 
   ##
@@ -190,7 +191,57 @@
   # @param combo [string]
   #   of the form:
   #   [key] + [x]
-  bind = (combo) ->
+  bind = (string, that, data, callback) ->
+    string = string.replace /\s+/g, ""
+    ast = Keygex.parser.parse(string)
+    regexTokens = astToRegexTokens(ast)
+    console.log regexTokens
+    regex = new RegExp regexTokens.join("")  + "$"
+
+    keygex =
+      originalShortcut: string
+      regex: regex
+      that: that
+      data: data
+      callback: callback
+
+    _keygexes.pushObject keygex
+    return keygex
+
+  ##
+  # @return [Array<String: keyname>]
+  astToKeysUsed = (ast, collect=[]) ->
+    for own k, v of ast
+      if v instanceof Object
+        collect.concat astToKeysUsed(v)
+      if k == "event"
+        collect.push v
+
+    unique = []
+    collect.forEach (keyName) ->
+      if unique.indexOf(keyName) == -1
+        unique.push keyName
+    return unique
+
+
+  astToRegexTokens = (ast, tokens) ->
+    if ast.event?
+      return [
+
+        literalToken(ast.event)
+      ]
+
+    if ast.tag && ast.tag == "Seq"
+      before = astToRegexTokens(ast.first)
+      if ast.first.tag? != "Seq"
+        before = before.concat astToKeysUsed(ast.first).map( (keyName) -> literalToken(keyName, "up") )
+
+      after = astToRegexTokens(ast.rest)
+      if ast.rest.tag? != "Seq"
+        after = after.concat astToKeysUsed(ast.rest).map( (keyName) -> literalToken(keyName, "up") )
+
+      return before.concat after
+
 
   literalToken = (keyName, type="down") ->
     keyEvent =
@@ -270,6 +321,7 @@
 
 
 
+
   ##
   # returns a string literal (for regex tokens) representation of a string
   # Any "event token" that is the same must return the same event-to-string literal representation
@@ -300,9 +352,8 @@
   global.Keygex.kett = keyEventsToText
   global.Keygex.events = _keyEvents
   global.Keygex.keygexes = _keygexes
-  global.Keygex.bind = bindCombo
+  global.Keygex.bind = bind
   global.Keygex.downKeys = downKeys
   module.exports = key  if typeof module isnt "undefined"
   return
 ) @
-Keygex.bind
