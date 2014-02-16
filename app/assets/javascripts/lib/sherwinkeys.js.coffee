@@ -295,16 +295,6 @@
     utils.delayed resetState, 3000
   addEvent window, "focus", resetState
 
-  # set window.key and window.key.set/get/deleteScope, and the default filter
-  # global.key = assignKey
-  # global.key.setScope = setScope
-  # global.key.getScope = getScope
-  # global.key.deleteScope = deleteScope
-  # global.key.filter = filter
-  # global.key.isPressed = isPressed
-  # global.key.getPressedKeyCodes = getPressedKeyCodes
-  # global.key.noConflict = noConflict
-  # global.key.unbind = unbindKey
   global.Keygex ||= {}
   global.Keygex.cfe = _characterFromEvent
   global.Keygex.kett = keyEventsToText
