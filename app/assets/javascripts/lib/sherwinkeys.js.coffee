@@ -210,12 +210,20 @@
 
   ##
   # @return [Array<String: keyname>]
-  astToKeysUsed = (ast, collect=[]) ->
-    for own k, v of ast
-      if v instanceof Object
-        collect.concat astToKeysUsed(v)
-      if k == "event"
-        collect.push v
+  astToKeysUsed = (ast)  ->
+    collect = []
+    # If it's a sequence, drill to the very last element"
+    if ast.tag == "Seq"
+      collect = collect.concat astToKeysUsed(ast.rest)
+    else # Otherwise, it's a multi event, wrapped event, or basic event
+      for own k, v of ast
+        if v instanceof Object and !(v instanceof Array)
+          collect = collect.concat astToKeysUsed(v)
+        if v instanceof Array
+          v.forEach (element) ->
+            collect = collect.concat astToKeysUsed(element) if element instanceof Object
+        if k == "event"
+          collect.push v
 
     unique = []
     collect.forEach (keyName) ->
@@ -226,21 +234,35 @@
 
   astToRegexTokens = (ast, tokens) ->
     if ast.event?
-      return [
-
-        literalToken(ast.event)
-      ]
+      return [ literalToken(ast.event) ]
 
     if ast.tag && ast.tag == "Seq"
       before = astToRegexTokens(ast.first)
-      if ast.first.tag? != "Seq"
-        before = before.concat astToKeysUsed(ast.first).map( (keyName) -> literalToken(keyName, "up") )
+      unless ast.first.tag == "Seq"
+        keys = astToKeysUsed(ast.first)
+        beforeUp = modsToken(keys, "up")
+        before = before.concat beforeUp
 
       after = astToRegexTokens(ast.rest)
-      if ast.rest.tag? != "Seq"
-        after = after.concat astToKeysUsed(ast.rest).map( (keyName) -> literalToken(keyName, "up") )
-
+      # if it's not a sequence, then we need to close out"
+      unless ast.rest.tag == "Seq"
+        keys = astToKeysUsed(ast.rest)
+        afterUp = modsToken(keys, "up")
+        after = after.concat afterUp
       return before.concat after
+
+    if ast.tag && ast.tag == "multi"
+      modKeyNames = ast.events.map( (e) -> e.event )
+      return [ modsToken(modKeyNames) ]
+
+    if ast.outer && ast.inner
+      outer = astToRegexTokens(ast.outer)
+      inner = astToRegexTokens(ast.inner)
+      return outer.concat inner
+
+
+
+
 
 
   literalToken = (keyName, type="down") ->

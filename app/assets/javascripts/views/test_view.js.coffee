@@ -92,7 +92,7 @@ Sk.KeygexesController = Ember.ArrayController.extend
 
   init: ->
     @set('content', Keygex.keygexes)
-    @addKeygex("b _ j")
+    @addKeygex("a_b_c")
     # @addKeygex "
     # ["shift", "alt", "ctrl"], "b", window, ->
 
