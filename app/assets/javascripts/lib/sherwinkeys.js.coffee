@@ -214,7 +214,8 @@
     collect = []
     # If it's a sequence, drill to the very last element"
     if ast.tag == "Seq"
-      collect = collect.concat astToKeysUsed(ast.rest)
+      x = 5 # do nothing
+      # collect = collect.concat astToKeysUsed(ast.rest)
     else # Otherwise, it's a multi event, wrapped event, or basic event
       for own k, v of ast
         if v instanceof Object and !(v instanceof Array)
@@ -259,11 +260,6 @@
       outer = astToRegexTokens(ast.outer)
       inner = astToRegexTokens(ast.inner)
       return outer.concat inner
-
-
-
-
-
 
   literalToken = (keyName, type="down") ->
     keyEvent =
