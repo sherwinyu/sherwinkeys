@@ -1,7 +1,9 @@
-#     sherwinkeys.js
+#     Keygex.js
 #     (c) Sherwin Yu 2014
+
 ((global) ->
-  # cross-browser events
+  ##
+  # cross-browser shim for adding events
   addEvent = (object, event, method) ->
     if object.addEventListener
       object.addEventListener event, method, false
@@ -65,6 +67,9 @@
   for i in [1...20]
     _codeToKeyMap[111 + i] = 'f' + i
 
+  ##
+  # @param e [Event]
+  # @return string::KeyName
   _characterFromEvent = (e) ->
     # for keypress events we should return the character as is
     if e.type == "keypress"
@@ -91,8 +96,16 @@
     # or not.  we should make sure it is always lowercase for comparisons
     String.fromCharCode(e.which).toLowerCase()
 
+  ##
+  # Simple array of all KeyEvents, logged from front
+  # @type Array<KeyEvent>
   _keyEvents = []
 
+  ##
+  # Generates a KeyEvent object from a browser event object, containing the code,
+  # normalized-name, event type (up / down / press), and timestamp.
+  # @param e [Event]
+  # @return KeyEvent
   eventToKeyEvent = (e) ->
     keyCode = e.which
     keyName = _characterFromEvent(e)
@@ -103,16 +116,20 @@
       originalEvent: e
       timestamp: new Date()
 
-  checkTimeGap = ->
+  ##
+  # Checks whether at least one second has passed since any user input. If so,
+  # inserts a time gap event.
+  # Called by `recordEvent`
+  _checkTimeGap = ->
     return unless _keyEvents[0]?
     oldTs =  _keyEvents[_keyEvents.length - 1].timestamp
     diffSeconds = moment().diff(oldTs) / 1000
     if diffSeconds > 1
       insertTimeGap(diffSeconds)
 
-  insertTimeGap = (duration) ->
+  _insertTimeGap = (duration) ->
     timeEvent =
-      string: "   #{duration}s   "
+      string: "    #{duration}s    "
       type: "gap"
       timestamp: new Date()
       duration: duration
@@ -122,7 +139,9 @@
   # @param keyEvents [Array<KeyEvent>]
   # @return string - a textual representation (to be matched against a Keygex)
   keyEventsToText = (keyEvents) ->
-    # OPTIMIZE
+    # TODO(syu): OPTIMIZE -- this is horribly inefficient.
+    # We're doing a filter and then a join on every input event.
+    # Should probably just keep the text-stream in-memory and build on it.
     text = keyEvents.filter( (ke) -> ke.type != "gap").map((ke) -> keyEventToStringLiteral(ke)).join ''
     console.log text
     return text
@@ -244,21 +263,17 @@
       # unless ast.first.tag == "Seq"
       # ALWAYS close out
       keys = astToKeysUsed(ast.first)
-      beforeUp = modsToken(keys, "up")
+      beforeUp = simulToken(keys, "up")
       before = before.concat beforeUp
 
 
       # Don't end-ups on the after sequence
       after = astToRegexTokens(ast.rest)
-      # unless ast.rest.tag == "Seq"
-      # keys = astToKeysUsed(ast.rest)
-      # afterUp = modsToken(keys, "up")
-      # after = after.concat afterUp
       return before.concat after
 
     if ast.tag && ast.tag == "multi"
       modKeyNames = ast.events.map( (e) -> e.event )
-      return [ modsToken(modKeyNames) ]
+      return [ simulToken(modKeyNames) ]
 
     if ast.outer && ast.inner
       outer = astToRegexTokens(ast.outer)
@@ -286,63 +301,24 @@
     callback: -> console.log 'invoked'
 
   ##
-  #
-  modsToken = (mods, type="down") ->
-    # mods: ['ctrl', 'shift', 'alt', 'a']
-    #
-    tokens = mods.map( (mod) -> literalToken(mod, type))
+  # Returns a mass token that reflects order-independent pressing
+  # of the keys in `mods`
+  simulToken = (keyNames, type="down") ->
+    # keyNames: ['ctrl', 'shift', 'alt', 'a']
+
+    # TODO(syu): don't need to tokenify just yet
+    tokens = keyNames.map( (key) -> literalToken(key, type))
     # tokens: (ctrl-down), (shift-down), (alt-down), (a-down)
 
-    anyModAlternation = tokens. join '|'
+    anyKeyAlternation = tokens. join '|'
     # anyModAlternation: (ctrl-down)|(shift-down)|(alt-down)|(a-down)
 
-    anyModToken = tokenify anyModAlternation
-    repeatedAnyMod = anyModToken + "{#{mods.length}}"
+    anyKeyToken = tokenify anyKeyAlternation
+    simulKeyToken = anyKeyToken + "{#{keyNames.length}}"
     # repeatedAnyMod: ((ctrl-down)|(shift-down)|(alt-down)|(a-down)){4}
 
-    tokenify repeatedAnyMod
-
-  ## language
-
-  ##
-  # @param combos [Array<string>]
-  # @param hits [Array<string>]
-  bindCombo = (mods, hit, that, data, callback) ->
-    # arrayify the parametesr
-    mods = [].concat mods
-
-    modsDown = modsToken(mods)
-    hitDown = literalToken(hit)
-
-    compiled = modsDown + hitDown + "$"
-
-    # modDown = literalToken(mod)
-    # modUp = literalToken(mod, "up")
-    # hit = literalToken(hit) + literalToken(hit, "up")
-    # compiled = modDown + hit + modUp + "$"
-    regex = new RegExp(compiled)
-    keygex =
-      originalShortcut: "#{mods}+#{hit}"
-      regex: regex
-      that: that
-      data: data
-      callback: callback
-
-    _keygexes.pushObject keygex
-    return keygex
-
-
-
-
-
-
-
-
-
-
-
-
-
+    # TODO optimize -- don't need to tknfy here either
+    tokenify simulKeyToken
 
   ##
   # returns a string literal (for regex tokens) representation of a string
@@ -353,7 +329,8 @@
   keyEventToStringLiteral = (ke) ->
     "#{ke.keyName}-#{ke.type}"
 
-
+  ##
+  # Clears the key events log
   resetState = ->
     return unless _keyEvents.length
     lastTs = _keyEvents[_keyEvents.length - 1].timestamp
