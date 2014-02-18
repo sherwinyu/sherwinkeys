@@ -25,8 +25,20 @@ Sk.KeyEventsController = Ember.ArrayController.extend
 
   init: ->
     @_super()
-    @set 'content', Keygex.events
-    @set 'downKeys', Keygex.downKeys
+    @set 'content', []
+    @set 'downKeys',[]
+    Keygex.hooks.keyEventAdded = (keyEvent) =>
+      @get('content').pushObject keyEvent
+    Keygex.hooks.keyEventsCleared = =>
+      @get('content').clear()
+
+    Keygex.hooks.downKeyAdded = (keyName) =>
+      @get('downKeys').pushObject keyName
+    Keygex.hooks.downKeyRemoved = (keyName) =>
+      @get('downKeys').removeObject keyName
+
+    Keygex.hooks.downKeysCleared = =>
+      @get('downKeys').clear()
 
   reversedContent: (->
     @get('content').toArray().reverse()
@@ -47,8 +59,6 @@ Sk.KeyEventsController = Ember.ArrayController.extend
   actions:
     clear: ->
       @get('content').clear()
-
-
 
 Sk.TestView = Ember.View.extend
   templateName: "test"
@@ -83,19 +93,23 @@ Sk.KeygexesView = Ember.View.extend
 
 Sk.KeygexesController = Ember.ArrayController.extend
   addKeygex: (input) ->
-
-    # hit = mods.pop()
     connector = Ember.Object.create()
-    Keygex.bind input, connector, connector, (keygex) ->
+
+    keygex = Keygex.bind input, connector, connector, (keygex) ->
       keygex.data.set "activated", true
       utils.delayed( 1000, -> keygex.data.set "activated", false )
 
+    @get('content').pushObject keygex
+
   init: ->
-    @set('content', Keygex.keygexes)
-    @addKeygex("a_b_c")
+    @set('content', [])
+    @addKeygex("a...b...c")
+    @addKeygex("shift+alt+ctrl+w")
+    @addKeygex("{shift,alt,ctrl}+w")
     # @addKeygex "
     # ["shift", "alt", "ctrl"], "b", window, ->
 
 Sk.KeygexView = Ember.View.extend
   classNames: 'keygex'
   classNameBindings: ['controller.content.data.activated:activated']
+

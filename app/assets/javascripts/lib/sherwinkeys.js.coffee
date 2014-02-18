@@ -2,7 +2,7 @@
 #     (c) Sherwin Yu 2014
 
 ((global) ->
-  ##
+
   # cross-browser shim for adding events
   addEvent = (object, event, method) ->
     if object.addEventListener
@@ -21,51 +21,55 @@
   # so it has to be here to map to the correct keycodes for
   # keyup/keydown events
   # @type [Object<Keycode::Integer, String::keyname>]
-  _codeToKeyMap =
-    8: 'backspace'
-    9: 'tab'
-    13: 'enter'
-    16: 'shift'
-    17: 'ctrl'
-    18: 'alt'
-    20: 'capslock'
-    27: 'esc'
-    32: 'space'
-    33: 'pageup'
-    34: 'pagedown'
-    35: 'end'
-    36: 'home'
-    37: 'left'
-    38: 'up'
-    39: 'right'
-    40: 'down'
-    45: 'ins'
-    46: 'del'
-    91: 'meta'
-    93: 'meta'
-    224: 'meta'
+  _codeToKeyMap = []
+
+  setupKeyMaps = ->
+    # Add in the f keys programmatically
+    for i in [1...20]
+      _codeToKeyMap[111 + i] = 'f' + i
+
+    _codeToKeyMap =
+      8: 'backspace'
+      9: 'tab'
+      13: 'enter'
+      16: 'shift'
+      17: 'ctrl'
+      18: 'alt'
+      20: 'capslock'
+      27: 'esc'
+      32: 'space'
+      33: 'pageup'
+      34: 'pagedown'
+      35: 'end'
+      36: 'home'
+      37: 'left'
+      38: 'up'
+      39: 'right'
+      40: 'down'
+      45: 'ins'
+      46: 'del'
+      91: 'meta'
+      93: 'meta'
+      224: 'meta'
 
 
-    # Special keys
-    106: '*'
-    107: '+'
-    109: '-'
-    110: '/'
-    186: ';'
-    187: '='
-    188: ','
-    189: '-'
-    190: '.'
-    191: '/'
-    192: '`'
-    219: '['
-    220: '\\'
-    221: ']'
-    222: '\''
-
-  # Add in the f keys programmatically
-  for i in [1...20]
-    _codeToKeyMap[111 + i] = 'f' + i
+      # Special keys
+      106: '*'
+      107: '+'
+      109: '-'
+      110: '/'
+      186: ';'
+      187: '='
+      188: ','
+      189: '-'
+      190: '.'
+      191: '/'
+      192: '`'
+      219: '['
+      220: '\\'
+      221: ']'
+      222: '\''
+  setupKeyMaps()
 
   ##
   # @param e [Event]
@@ -125,7 +129,7 @@
     oldTs =  _keyEvents[_keyEvents.length - 1].timestamp
     diffSeconds = moment().diff(oldTs) / 1000
     if diffSeconds > 1
-      insertTimeGap(diffSeconds)
+      _insertTimeGap(diffSeconds)
 
   _insertTimeGap = (duration) ->
     timeEvent =
@@ -134,6 +138,7 @@
       timestamp: new Date()
       duration: duration
     _keyEvents.pushObject timeEvent
+    hooks.keyEventAdded timeEvent
 
   ##
   # @param keyEvents [Array<KeyEvent>]
@@ -148,83 +153,102 @@
 
   ##
   # @param cur [KeyEvent] the key event to compare
-  # @return bool True `keyEvent` is a duplicate of the most recent event
-  detectKeyDownDuplicate = (cur) ->
-    # ans = (cur.type == "down" && downKeys.indexOf(cur.keyName) > -1)
-    # console.log "cur.type", cur.type, "downKeys.indexOf(cur.keyName)", downKeys.indexOf(cur.keyName)
-    # return ans
+  # @return bool True `cur` is a duplicate of the most recent event
+  _detectKeyDownDuplicate = (cur) ->
     return false unless _keyEvents.length
     return false if cur.type != "down"
     # Note we need to limit to keyDown events because keyPress events will be stuck in as well
 
-    # find the last keyEvent with same type as cur
+    # A KeyDown event is considered a "duplicate" if:
+    #   The most recent key event with the same keyName as the current keydown event
+    #   is a keydown or a keypress.
+
+    # First, find the most recent key event with the same keyname
     idx = _keyEvents.length - 1
     while idx > 0 && (last = _keyEvents[idx]).keyName != cur.keyName
       idx -= 1
-    # it's possible we hit the beginning and didn't find anything, so make sure that last and cur
-    # have same keyName
+    # It's possible we hit the beginning of keyEvents and didn't find anything; in that case,
+    # the current keydown event is not a duplicate.
     return false unless last && last.keyName == cur.keyName
 
-
-
-    # current key event is a duplicate-down if last was a 'down' or 'press'
+    # Finally, if the most-recent event with the same name has a type of 'down' or 'press',
+    # then the current keydown event is a duplicate.
     return last.type in ["down", "press"]
 
-
-    # while (last = _keyEvents[idx]).keyName = cur.keyName &&
-    # idx -= 1
-    # keyDownEvents = _keyEvents.filter( (ke) -> ke.type == "down") # TODO OPTIMIZE
-    # last = keyDownEvents[keyDownEvents.last.length - 1]
-    # last.type == "down" && cur.type =="down" && last.keyName == cur.keyName
-
   downKeys = []
-  updateDownKeys = (keyEvent) ->
+
+  ##
+  #
+  _updateDownKeys = (keyEvent) ->
     if keyEvent.type == "down" && downKeys.indexOf(keyEvent.keyName) ==  -1
       downKeys.pushObject keyEvent.keyName
+      hooks.downKeyAdded keyEvent.keyName, keyEvent
     if keyEvent.type == "up"
       downKeys.removeObject keyEvent.keyName
+      hooks.downKeyRemoved keyEvent.keyName, keyEvent
+
+  ##
+  # Hooks that are called when the following events happen
+  # @type [Object<hook name, callback function>]
+  hooks =
+    downKeyAdded: (keyEvent) -> false
+    downKeyRemoved: (keyEvent) -> false
+    downKeysCleared: ->
+    keygexAdded: (keygex) -> false
+    keyEventAdded: (keyEvent) -> false
+    keyEventsCleared: -> false
 
   recordEvent = (e)->
-    checkTimeGap()
+    _checkTimeGap()
     keyEvent = eventToKeyEvent(e)
-    updateDownKeys(keyEvent)
+    _updateDownKeys(keyEvent)
 
-    # filter dupe keydowns
-    if detectKeyDownDuplicate(keyEvent)
-      console.log "rejectin cuz of dupe"
+    # Filter out duplicate (repeated) keydown events
+    if _detectKeyDownDuplicate(keyEvent)
       return
 
+    # Create the key event
     keyEvent.timestamp = new Date()
     keyEvent.string = keyEventToStringLiteral(keyEvent)
+    _keyEvents.push keyEvent
+    hooks.keyEventAdded keyEvent
 
-    _keyEvents.pushObject keyEvent
+    _fireKeygexCallbacks()
 
-    checkCallbacks()
-
-  checkCallbacks = ->
+  ##
+  # Fire all relevant callbacks for registered keygexes.
+  _fireKeygexCallbacks = ->
     for keygex in _keygexes
+      # Check if the keygex's regexp matches the textual representation of the keyevents
       if keyEventsToText(_keyEvents.filter (ke) -> ke.type in ["down", "up"]).match keygex.regex
         keygex.callback.call(keygex.that, keygex, _keyEvents[_keyEvents.length - 1])
 
   ##
-  # @param combo [string]
-  #   of the form:
-  #   [key] + [x]
-  bind = (string, that, data, callback) ->
-    string = string.replace /\s+/g, ""
-    ast = Keygex.parser.parse(string)
+  # @param keygexString [String] A valid keygex string. See documentation for valid strings
+  # @param that [Object] the object to be used as `this` for the callback
+  # @param data [Object] any additional data that will be attached to the keygex object.
+  # @param callback [Function] callback function invoked when
+  #   Callback function takes the following params:
+  #     - `keygex` the keygex object, containing the `originalShortcut`, the compiled `regex`, and the
+  #     user specified `data`
+  #     - `keyEvent` the event that completed the keygex (the last event in the keygex string)
+  # @return [Keygex] the newly added keygex object
+  bind = (keygexString, that, data, callback) ->
+    keygexString = keygexString.replace /\s+/g, ""
+
+    # Convert the keygex string to a comiled regex
+    ast = Keygex.parser.parse(keygexString)
     regexTokens = astToRegexTokens(ast)
-    console.log regexTokens
     regex = new RegExp regexTokens.join("")  + "$"
 
     keygex =
-      originalShortcut: string
+      originalShortcut: keygexString
       regex: regex
       that: that
       data: data
       callback: callback
-
-    _keygexes.pushObject keygex
+    _keygexes.push keygex
+    hooks.keygexAdded(keygex)
     return keygex
 
   ##
@@ -335,8 +359,10 @@
     return unless _keyEvents.length
     lastTs = _keyEvents[_keyEvents.length - 1].timestamp
     if moment().diff(lastTs) > 1500
-      downKeys.clear()
-      _keyEvents.clear()
+      downKeys = []
+      _keyEvents = []
+      hooks.keyEventsCleared()
+      hooks.downKeysCleared()
 
 
   addEvent document, "keydown", recordEvent
@@ -353,6 +379,7 @@
   global.Keygex.keygexes = _keygexes
   global.Keygex.bind = bind
   global.Keygex.downKeys = downKeys
+  global.Keygex.hooks = hooks
   module.exports = key  if typeof module isnt "undefined"
   return
 ) @
