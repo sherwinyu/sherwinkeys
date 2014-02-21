@@ -1,8 +1,11 @@
 = originalShortcut
-'    -> &#47;
+'   .
+'   .
+'   .
+' ->
 
 = regex
-| &#47;
+|
 
 span.detector
-  | hit
+  |  ==== hit

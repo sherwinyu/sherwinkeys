@@ -2,7 +2,7 @@
 #= require handlebars
 #= require ember
 #= require ember-data
-#= require ./lib/sherwinkeys
+#= require ./lib/keygex
 #= require ./lib/keygex_parser
 #= require ./lib/moment.min
 #

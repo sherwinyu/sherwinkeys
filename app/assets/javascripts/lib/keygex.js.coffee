@@ -175,10 +175,12 @@
     # then the current keydown event is a duplicate.
     return last.type in ["down", "press"]
 
+  ##
+  # @type [Array<String>] Set representing keys that are currently pushed down.
   downKeys = []
 
   ##
-  #
+  # Updates the down keys set (on keydown and key up events)
   _updateDownKeys = (keyEvent) ->
     if keyEvent.type == "down" && downKeys.indexOf(keyEvent.keyName) ==  -1
       downKeys.pushObject keyEvent.keyName
@@ -198,6 +200,9 @@
     keyEventAdded: (keyEvent) -> false
     keyEventsCleared: -> false
 
+  ##
+  # The primary entry point for logging key events
+  # Appends the corresponding key events to the list, then fires corresponding callbacks
   recordEvent = (e)->
     _checkTimeGap()
     keyEvent = eventToKeyEvent(e)
@@ -207,7 +212,7 @@
     if _detectKeyDownDuplicate(keyEvent)
       return
 
-    # Create the key event
+    # Create and store the KeyEvent
     keyEvent.timestamp = new Date()
     keyEvent.string = keyEventToStringLiteral(keyEvent)
     _keyEvents.push keyEvent
